@@ -152,6 +152,10 @@ class AbstractAttenuationCurveAnalyzer(abc.ABC):
         # print('filename', fname)
         fig = self.fit_result.plot(
             show_init=False, xlabel=xlabel, ylabel=ylabel, title=title)
+        # switch on gridlines
+        for ax in fig.get_axes():
+            ax.xaxis.grid(True)
+            ax.yaxis.grid(True)
         fig.savefig(fname)
         plt.close(fig)
 
