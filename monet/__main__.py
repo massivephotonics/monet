@@ -17,6 +17,10 @@ import os
 import traceback
 from io import StringIO
 from contextlib import redirect_stdout
+from ctypes import *
+from .FWxC_COMMAND_LIB import *
+
+import time
 
 from monet import CONFIGS, CONFIGS_PATH, PROTOCOLS, PROTOCOLS_PATH
 
@@ -43,7 +47,25 @@ def main():
     """
     import argparse
     # os.chdir(os.path.split(CONFIGS_PATH)[0])
+    
+    
+    devs = FWxCListDevices()
+    if(len(devs)<=0):
+        print('ND Filter wheel is not connected')
+        exit()
 
+    FWxC= devs[0]
+    serialNumber = FWxC[0]
+    hdl = FWxCOpen(serialNumber,115200,3)
+    result = FWxCSetPosition(hdl, 1) 
+    if(result<0):
+        print("Set Position Mode of ND filter wheel fail" , result)
+    
+    time.sleep(1)
+
+    FWxCClose(hdl)
+
+    
     # Main parser
     parser = argparse.ArgumentParser("monet")
     parser.add_argument(
