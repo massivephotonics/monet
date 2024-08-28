@@ -664,6 +664,20 @@ class MonetSetInteractive(cmd.Cmd):
             else:
                 try:
                     print('Setting laser {:s}.'.format(str(laser)))
+                    if (self.instrument.curr_laser is not None
+                        and self.instrument.curr_laser != laser
+                    ):
+                        if (self.instrument.lasers[
+                            self.instrument.curr_laser].enabled
+                        ):
+                            print(
+                                f'WARNING: switching to {laser}, but'
+                                + f' laser {self.instrument.curr_laser}'
+                                + 'is still ON!')
+                            logger.debug(
+                                f'WARNING: switching to {laser}, but'
+                                + f' laser {self.instrument.curr_laser}'
+                                + 'is still ON!')
                     self.instrument.laser = laser
                     self.instrument.attenuator.set_wavelength(laser)
                     # self.do_open('')
