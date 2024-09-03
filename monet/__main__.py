@@ -562,9 +562,12 @@ class MonetSetInteractive(cmd.Cmd):
     intro = '''Welcome to interactive monet - set. Here, Microscope
         illumination power can be set if calibrations exist. A powermeter
         does not need to be plugged in.
+        By default, a laser is switched off when navigating to a different
+        one. Use command 'multi_laser'
         '''
     prompt = '(monet set)'
     file = None
+    multi_laser_operation = True
 
     def __init__(self, config_name):
         super().__init__()
@@ -627,6 +630,18 @@ class MonetSetInteractive(cmd.Cmd):
             self.do_laser(las)
             self.power_setvalues[las] = round(self.instrument.power)
 
+    def do_multi_laser(self, arg):
+        if arg.upper() == '0' or arg.upper() == 'FALSE':
+            self.multi_laser_operation = False
+            print("""
+                Switching multi-laser operation off.
+                Only one laser is on at a time.""")
+        else:
+            self.multi_laser_operation = True
+            print("""
+                Switching multi-laser operation on.
+                Explicitly switch lasers off when not using.""")
+
     def do_laser(self, laser):
         """Activate a laser, and open the beam path for it.
         Switch current laser on with 'ON', switch all on with 'ALLON'.
@@ -666,6 +681,7 @@ class MonetSetInteractive(cmd.Cmd):
                     print('Setting laser {:s}.'.format(str(laser)))
                     if (self.instrument.curr_laser is not None
                         and self.instrument.curr_laser != laser
+                        and self.multi_laser_operation
                     ):
                         if (self.instrument.lasers[
                             self.instrument.curr_laser].enabled
@@ -678,6 +694,10 @@ class MonetSetInteractive(cmd.Cmd):
                                 f'WARNING: switching to {laser}, but'
                                 + f' laser {self.instrument.curr_laser}'
                                 + 'is still ON!')
+                    elif not self.multi_laser_operation:
+                        # switch the current laser off
+                        self.instrument.lasers[
+                            self.instrument.curr_laser].enabled = False
                     self.instrument.laser = laser
                     self.instrument.attenuator.set_wavelength(laser)
                     # self.do_open('')
@@ -833,6 +853,8 @@ class MonetSetInteractive(cmd.Cmd):
         return line
 
     def close(self):
+        print("Switching all lasers off.")
+        self.do_laser('off')
         pass
 
 
